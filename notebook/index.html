@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>파이썬 노트북</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Roboto:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="2" y="2" width="28" height="28" rx="7" fill="var(--accent)"/>
+        <path d="M10 11l5 5-5 5" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 21h6" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="title-area">
+      <div class="title-row">
+        <input id="titleInput" class="title-input" spellcheck="false" aria-label="노트북 제목">
+        <span class="title-ext">.ipynb</span>
+        <span id="recordChip" class="record-chip" tabindex="0">● 작성 과정 기록 중</span>
+        <span id="saveState" class="save-state"></span>
+      </div>
+      <nav class="menubar" id="menubar">
+        <div class="menu">
+          <button class="menu-btn">파일</button>
+          <div class="menu-pop">
+            <button data-cmd="new">새 노트북</button>
+            <button data-cmd="open">.ipynb 파일 열기…</button>
+            <button data-cmd="download">.ipynb 다운로드</button>
+          </div>
+        </div>
+        <div class="menu">
+          <button class="menu-btn">수정</button>
+          <div class="menu-pop">
+            <button data-cmd="clear-outputs">모든 출력 지우기</button>
+            <button data-cmd="delete-cell">선택한 셀 삭제</button>
+          </div>
+        </div>
+        <div class="menu">
+          <button class="menu-btn">런타임</button>
+          <div class="menu-pop">
+            <button data-cmd="run-all">모두 실행</button>
+            <button data-cmd="run-after">선택한 셀부터 실행</button>
+            <button data-cmd="interrupt">실행 중단</button>
+            <hr>
+            <button data-cmd="restart">런타임 다시 시작</button>
+            <button data-cmd="restart-run-all">다시 시작 후 모두 실행</button>
+          </div>
+        </div>
+        <div class="menu">
+          <button class="menu-btn">도움말</button>
+          <div class="menu-pop">
+            <button data-cmd="shortcuts">단축키 보기</button>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <div class="runtime">
+      <button id="runtimeChip" class="runtime-chip" data-state="connecting" title="런타임 상태">
+        <span class="dot"></span><span id="runtimeText">연결 중…</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <button class="tool-btn" data-cmd="add-code"><span class="plus">+</span> 코드</button>
+    <button class="tool-btn" data-cmd="add-text"><span class="plus">+</span> 텍스트</button>
+    <span class="toolbar-spacer"></span>
+    <button class="tool-btn" data-cmd="run-all">▶ 모두 실행</button>
+    <button class="tool-btn" data-cmd="interrupt" id="interruptBtn" disabled>■ 중단</button>
+  </div>
+
+  <main id="notebook" class="notebook"></main>
+
+  <input type="file" id="fileInput" accept=".ipynb,application/json" hidden>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <dialog id="shortcutDialog" class="dialog">
+    <h2>단축키</h2>
+    <table>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td><td>현재 셀 실행</td></tr>
+      <tr><td><kbd>Shift</kbd>+<kbd>Enter</kbd></td><td>실행 후 다음 셀로 이동</td></tr>
+      <tr><td><kbd>Alt</kbd>+<kbd>Enter</kbd></td><td>실행 후 아래에 새 셀 추가</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>/</kbd></td><td>주석 넣기/빼기</td></tr>
+      <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>들여쓰기 / 내어쓰기</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>브라우저에 저장</td></tr>
+    </table>
+    <form method="dialog"><button class="primary">닫기</button></form>
+  </dialog>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+  <script src="config.js"></script>
+  <script src="integrity.js"></script>
+  <script src="google.js"></script>
+  <script src="app.js"></script>
+  <script src="assignment.js"></script>
+</body>
+</html>

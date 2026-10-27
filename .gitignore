@@ -1,0 +1,26 @@
+# 허용 목록 방식: 아래에서 다시 허용한 것만 GitHub에 올라간다.
+# (정답 파일, 채점 기준, 예전 코드 등이 실수로 올라가지 않도록)
+/*
+!/.gitignore
+!/README.md
+!/LICENSE
+!/docs/
+!/notebook/
+!/grading/
+
+# 채점 기준은 정답 정보를 담으므로 예시와 안내만 올린다
+/grading/*
+!/grading/README.md
+!/grading/example_rubric.py
+
+# 비밀 값·배포 연결 정보
+.env*
+.vercel/
+notebook/_testdata/
+
+# 기타
+node_modules/
+__pycache__/
+.DS_Store
+Thumbs.db
+*.log

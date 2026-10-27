@@ -1,0 +1,7 @@
+# 배포하지 않을 파일 (정답·테스트용 자료, 로컬 서버, 문서)
+_testdata
+serve.py
+*.ipynb
+*.md
+.env*
+.gitignore
