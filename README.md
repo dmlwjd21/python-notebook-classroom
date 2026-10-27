@@ -48,3 +48,7 @@ python notebook/serve.py
 ```
 
 → http://localhost:8000/review.html 에서 과제 배포·채점 흐름을 시험할 수 있습니다.
+
+## 라이선스
+
+[MIT](LICENSE) — 출처(저작권 표시)만 남기면 누구나 자유롭게 쓰고, 고치고, 나눌 수 있습니다.

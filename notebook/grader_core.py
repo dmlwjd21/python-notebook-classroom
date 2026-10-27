@@ -271,25 +271,81 @@ def grade(student_json, template_json, rubric):
 
 
 _SNAPSHOT = None
+_FINGERPRINT = None
+
+
+def _watched():
+    """채점이 기대는 라이브러리 부분: 학생 코드가 여기 함수를 바꾸면(예: Axes.get_title을 항상 정답으로)
+    그 학생과 이후 학생들의 채점 결과가 틀어진다."""
+    import builtins
+    import matplotlib.axes
+    import matplotlib.axis
+    import matplotlib.collections
+    import matplotlib.colors
+    import matplotlib.figure
+    import matplotlib.legend
+    import matplotlib.lines
+    import matplotlib.patches
+    import matplotlib.text
+    targets = {
+        "builtins": builtins, "json": json, "re": re, "pyplot": plt, "matplotlib": matplotlib,
+        "colors": matplotlib.colors,
+    }
+    for cls in (
+        matplotlib.axes.Axes, matplotlib.figure.Figure, matplotlib.figure.FigureBase,
+        matplotlib.lines.Line2D, matplotlib.patches.Patch, matplotlib.patches.Rectangle,
+        matplotlib.text.Text, matplotlib.collections.Collection, matplotlib.collections.PathCollection,
+        matplotlib.legend.Legend, matplotlib.axis.Axis, matplotlib.axis.XAxis, matplotlib.axis.YAxis,
+        matplotlib.axis.Tick, matplotlib.artist.Artist,
+    ):
+        targets[f"{cls.__module__}.{cls.__name__}"] = cls
+    for base in matplotlib.axes.Axes.__mro__:
+        targets.setdefault(f"{base.__module__}.{base.__name__}", base)
+    return targets
+
+
+def _warm_up():
+    # 처음 그래프를 그릴 때 matplotlib가 내부 값을 한 번 채우므로, 기준을 잡기 전에 미리 한 번 그려 둔다
+    fig = plt.figure(figsize=(2, 2), dpi=50)
+    plt.bar(["a", "b"], [1, 2], color="olive")
+    plt.plot(["a", "b"], [2, 1], label="x")
+    plt.scatter([1, 2], [1, 2])
+    plt.title("t"); plt.xlabel("x"); plt.ylabel("y"); plt.legend(); plt.grid(alpha=0.5); plt.xticks(rotation=30)
+    fig.canvas.draw()
+    plt.close("all")
+    matplotlib.rcdefaults()
+
+
+def _fingerprint():
+    fp = {}
+    for prefix, obj in _watched().items():
+        for name, value in list(vars(obj).items()):
+            fp[f"{prefix}.{name}"] = id(value)
+    return fp
 
 
 def grade_json(student_json, template_json):
     """채점 Worker에서 부르는 진입점: 결과를 JSON 문자열로 돌려준다 (RUBRIC은 기준 파일이 만든다)
 
-    학생 코드가 채점 함수(close, same_color 등)를 바꿔치기하면 그 학생뿐 아니라 다음 학생 채점까지
-    망가질 수 있다. 채점 전후로 이 파일의 이름들을 비교해 바뀐 것이 있으면 되돌리고 결과에 표시한다."""
-    global _SNAPSHOT
+    학생 코드가 채점 함수(close, same_color 등)나 matplotlib·파이썬 기본 함수를 바꿔치기하면
+    그 학생뿐 아니라 다음 학생 채점까지 망가질 수 있다. 채점 전후를 비교해 바뀐 것이 있으면 결과에 표시하고,
+    이 파일의 이름들은 되돌린다. (라이브러리 쪽이 바뀌면 채점 화면이 엔진을 새로 띄운다)"""
+    global _SNAPSHOT, _FINGERPRINT
     g = globals()
     if _SNAPSHOT is None:
+        _warm_up()
         _SNAPSHOT = dict(g)
+        _FINGERPRINT = _fingerprint()
     result = grade(student_json, template_json, g["RUBRIC"])
-    changed = [k for k, v in _SNAPSHOT.items() if k != "_SNAPSHOT" and g.get(k) is not v]
+    changed = [k for k, v in _SNAPSHOT.items() if k not in ("_SNAPSHOT", "_FINGERPRINT") and g.get(k) is not v]
     added = [k for k in list(g) if k not in _SNAPSHOT]
     for k in changed:
         g[k] = _SNAPSHOT[k]
     for k in added:
         del g[k]
-    result["tampered"] = changed + added
+    now = _fingerprint()
+    lib_changed = sorted(k for k in set(_FINGERPRINT) | set(now) if _FINGERPRINT.get(k) != now.get(k))
+    result["tampered"] = changed + added + lib_changed[:10]
     return json.dumps(result, ensure_ascii=False)
 
 
