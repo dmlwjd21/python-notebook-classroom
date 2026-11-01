@@ -34,6 +34,8 @@ http://localhost:8000 (노트북), http://localhost:8000/review.html (교사용 
 | `deploy.js` | 교사용: 과제·수업 자료 배포 |
 | `grade.js`, `grade-worker.js` | 교사용: 제출물 수집·자동 채점 (채점은 별도 Worker) |
 | `grader_core.py` | 채점 엔진 (Pyodide 안에서 실행, 그래프 객체 검사) |
+| `algo.js` | 알고리즘 보기: 파이썬 코드를 규칙으로 해석해 순서도(SVG)·의사코드 표시 |
+| `draw.js` | 판서: 펜·형광펜·레이저·지우개 (획은 문서 좌표로 저장) |
 | `config.js`, `build.mjs`, `vercel.json` | 설정과 배포 |
 | `serve.py` | 로컬 테스트용 서버 |
 

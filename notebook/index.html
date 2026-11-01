@@ -71,6 +71,9 @@
   <div class="toolbar">
     <button class="tool-btn" data-cmd="add-code"><span class="plus">+</span> 코드</button>
     <button class="tool-btn" data-cmd="add-text"><span class="plus">+</span> 텍스트</button>
+    <span class="toolbar-sep"></span>
+    <label class="tool-check" title="코드 옆에 순서도와 의사코드를 보여줘요"><input type="checkbox" id="algoToggle"> 알고리즘 보기</label>
+    <button class="tool-btn" data-cmd="draw" title="화면에 펜으로 판서해요">✏️ 판서</button>
     <span class="toolbar-spacer"></span>
     <button class="tool-btn" data-cmd="run-all">▶ 모두 실행</button>
     <button class="tool-btn" data-cmd="interrupt" id="interruptBtn" disabled>■ 중단</button>
@@ -107,5 +110,7 @@
   <script src="google.js"></script>
   <script src="app.js"></script>
   <script src="assignment.js"></script>
+  <script src="algo.js"></script>
+  <script src="draw.js"></script>
 </body>
 </html>
