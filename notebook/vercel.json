@@ -2,5 +2,6 @@
   "framework": null,
   "installCommand": "",
   "buildCommand": "node build.mjs",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "regions": ["icn1"]
 }
