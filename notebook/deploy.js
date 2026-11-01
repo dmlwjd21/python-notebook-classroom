@@ -176,6 +176,7 @@
         allowFileOpen: false,
         record: material ? $('#dRecord').checked : true,
         algo: !$('#dNoAlgo').checked,
+        saveDrawing: material ? $('#dSaveDrawing').checked : false,
       },
     };
     for (const c of template.cells) {
