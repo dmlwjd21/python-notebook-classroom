@@ -40,9 +40,12 @@
       <button type="button" data-act="clear" title="모두 지우기">🗑️<span>모두 지우기</span></button>
       <button type="button" data-act="close" title="판서 끝내기 (Esc) - 그린 내용은 남아요">✕<span>닫기</span></button>
     </div>
-    <div class="dp-note" hidden>💾 판서가 내 드라이브의 실습 파일에 함께 저장돼요</div>`;
+    <label class="dp-save" hidden title="켜면 그린 내용이 내 드라이브의 실습 파일에 저장되어 다음 시간에도 보여요. 끄면 화면에만 남고 파일에서는 빠져요.">
+      <input type="checkbox"> 💾 판서 저장 <small>(내 드라이브 실습 파일)</small>
+    </label>`;
   document.body.append(palette);
-  const note = palette.querySelector('.dp-note');
+  const saveBox = palette.querySelector('.dp-save');
+  const saveToggle = saveBox.querySelector('input');
 
   const state = {
     on: false,
@@ -56,7 +59,8 @@
     history: [],     // 되돌리기용
     current: null,
     raf: 0,
-    persist: false,  // 노트북 파일에 저장할지 (수업 자료 + 선생님 설정)
+    canSave: false,  // 선생님이 이 수업 자료에서 판서 저장 기능을 켰는지
+    persist: false,  // 지금 파일에 저장하는지 (canSave + 사용자가 스위치를 켬)
     saveTimer: null,
   };
 
@@ -161,17 +165,36 @@
 
   // ------------------------------------------------------------ 저장 (수업 자료)
 
+  // 파일에 판서를 쓰거나(저장 켬) 빼거나(저장 끔) 한다
+  function writeToFile(strokes) {
+    const nb = App.getNotebook();
+    nb.metadata = nb.metadata || {};
+    nb.metadata.pyclass = nb.metadata.pyclass || {};
+    if (strokes) nb.metadata.pyclass.drawing = { version: 1, strokes };
+    else delete nb.metadata.pyclass.drawing;
+    App.saveNow(); // 드라이브 자동 저장으로 이어짐
+  }
+
   function save() {
     if (!state.persist || !App) return;
     clearTimeout(state.saveTimer);
-    state.saveTimer = setTimeout(() => {
-      const nb = App.getNotebook();
-      nb.metadata = nb.metadata || {};
-      nb.metadata.pyclass = nb.metadata.pyclass || {};
-      nb.metadata.pyclass.drawing = { version: 1, strokes: state.strokes };
-      App.saveNow(); // 드라이브 자동 저장으로 이어짐
-    }, SAVE_DELAY);
+    state.saveTimer = setTimeout(() => writeToFile(state.strokes), SAVE_DELAY);
   }
+
+  const prefKey = () => `pyclass:draw-save:${App && App.assignment ? App.assignment.templateId : ''}`;
+
+  saveToggle.addEventListener('change', () => {
+    state.persist = state.canSave && saveToggle.checked;
+    try { localStorage.setItem(prefKey(), saveToggle.checked ? '1' : '0'); } catch { /* 무시 */ }
+    clearTimeout(state.saveTimer);
+    if (state.persist) {
+      writeToFile(state.strokes);
+      App.toast('판서를 저장해요. 다음 시간에 같은 링크로 들어오면 다시 보여요.');
+    } else {
+      writeToFile(null);
+      App.toast('판서 저장을 껐어요. 그린 내용은 화면에만 남고 파일에서는 빠져요.');
+    }
+  });
 
   function changed() {
     updateButton();
@@ -182,8 +205,13 @@
   // 노트북을 (다시) 불러오면 그 파일에 저장된 판서를 꺼낸다
   window.addEventListener('pyclass:policy', (e) => {
     if (!App || !App.assignment || !e.detail.loaded) return;
-    state.persist = App.assignment.mode === 'practice' && e.detail.policy.saveDrawing !== false;
-    note.hidden = !state.persist;
+    // 선생님이 "판서 저장 기능 쓰기"를 켠 수업 자료에서만 스위치가 보인다 (기본은 꺼짐)
+    state.canSave = App.assignment.mode === 'practice' && e.detail.policy.saveDrawing === true;
+    let pref = true;
+    try { pref = localStorage.getItem(prefKey()) !== '0'; } catch { /* 무시 */ }
+    saveBox.hidden = !state.canSave;
+    saveToggle.checked = pref;
+    state.persist = state.canSave && pref;
     const saved = state.persist && App.getNotebook().metadata && App.getNotebook().metadata.pyclass
       && App.getNotebook().metadata.pyclass.drawing;
     state.strokes = saved && Array.isArray(saved.strokes) ? saved.strokes.filter((s) => s && Array.isArray(s.pts) && s.pts.length) : [];
