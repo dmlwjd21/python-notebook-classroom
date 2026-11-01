@@ -13,16 +13,16 @@
   const SHT = 'https://sheets.googleapis.com/v4/spreadsheets';
   const NOTEBOOK_MIME = 'application/vnd.google.colaboratory';
 
+  // 학생은 드라이브 전체 읽기(drive.readonly) 없이 drive.file만 받는다.
+  // 문제 파일은 선생님이 이 앱으로 만든 파일이라 drive.file로 읽는다(학생 계정으로 읽히는지 배포 전에 꼭 확인).
   const SCOPES = {
     student: [
       'https://www.googleapis.com/auth/classroom.coursework.me',
       'https://www.googleapis.com/auth/drive.file',
-      'https://www.googleapis.com/auth/drive.readonly',
     ],
     // 수업 자료: 클래스룸 권한 없이 드라이브만 (문제 파일 읽기 + 내 실습 파일 저장)
     practice: [
       'https://www.googleapis.com/auth/drive.file',
-      'https://www.googleapis.com/auth/drive.readonly',
     ],
     teacher: [
       'https://www.googleapis.com/auth/classroom.courses.readonly',

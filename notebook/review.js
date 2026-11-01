@@ -275,9 +275,14 @@
       if (!e) {
         info.textContent = `처음 상태 · ${steps.length - 1}단계 기록됨`;
       } else {
-        const kind = KIND_LABEL[e[5]] || e[5];
-        const cps = e[5] === 'i' && e[6] > 0 ? ` · 초당 ${(e[4].length / (e[6] / 1000)).toFixed(1)}자` : '';
-        info.innerHTML = `${n}/${steps.length - 1}단계 · ${escapeHtml(fmtTime(rec, step.t))} · <span class="kind-${e[5]}">${escapeHtml(kind)}</span>${e[4] ? ` ${e[4].length}자` : ''}${e[3] ? ` (지운 글자 ${e[3]}자)` : ''}${cps}`;
+        // 기록 값은 학생 파일에서 온 것이라 조작될 수 있다: 종류는 영문자만, 글자 수는 숫자로만 화면에 넣는다
+        const kindId = String(e[5]).replace(/[^a-z]/gi, '');
+        const kind = KIND_LABEL[kindId] || kindId;
+        const insLen = typeof e[4] === 'string' ? e[4].length : 0;
+        const removed = Number(e[3]) || 0;
+        const dur = Number(e[6]) || 0;
+        const cps = kindId === 'i' && dur > 0 ? ` · 초당 ${(insLen / (dur / 1000)).toFixed(1)}자` : '';
+        info.innerHTML = `${n}/${steps.length - 1}단계 · ${escapeHtml(fmtTime(rec, step.t))} · <span class="kind-${kindId}">${escapeHtml(kind)}</span>${insLen ? ` ${insLen}자` : ''}${removed ? ` (지운 글자 ${removed}자)` : ''}${cps}`;
       }
     };
 
