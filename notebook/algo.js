@@ -540,10 +540,17 @@
   const toggle = document.getElementById('algoToggle');
   if (!notebookEl || !toggle) return;
 
-  let enabled = false;
+  const App = window.PyClassApp;
+  const toggleLabel = toggle.closest('label') || toggle;
+
+  let enabled = false;   // 지금 화면에 보이는지
+  let wanted = false;    // 학생이 체크해 둔 값 (브라우저에 기억)
+  let forbidden = false; // 선생님이 이 과제에서 꺼 둠
+  // 과제·수업 자료 화면은 선생님 설정을 불러오기 전까지 보류 (그 전에 순서도가 잠깐 보이지 않도록)
+  let pending = !!(App && App.assignment);
   let view = 'flow';
   try {
-    enabled = localStorage.getItem(MODE_KEY) === '1';
+    wanted = localStorage.getItem(MODE_KEY) === '1';
     view = localStorage.getItem(VIEW_KEY) === 'pseudo' ? 'pseudo' : 'flow';
   } catch { /* 저장 공간 없음 */ }
 
@@ -614,17 +621,58 @@
     });
   }
 
-  function setEnabled(on) {
+  function show(on) {
     enabled = on;
     toggle.checked = on;
     document.body.classList.toggle('algo-mode', on);
-    try { localStorage.setItem(MODE_KEY, on ? '1' : '0'); } catch { /* 무시 */ }
     if (on) notebookEl.querySelectorAll('.cell.code').forEach(attach);
     else detachAll();
     notebookEl.querySelectorAll('.CodeMirror').forEach((el) => el.CodeMirror && el.CodeMirror.refresh());
   }
 
-  toggle.addEventListener('change', () => setEnabled(toggle.checked));
+  function applyAvailability() {
+    toggleLabel.hidden = forbidden || pending;
+    show(!forbidden && !pending && wanted);
+  }
+
+  // 선생님이 꺼 둔 과제에서 억지로 켜면(개발자 도구 등) 작성 기록에 남기고 다시 끈다
+  let lastViolation = 0;
+  function violation() {
+    if (App && Date.now() - lastViolation > 10000) {
+      lastViolation = Date.now();
+      App.recorder.log('policy-violation', { feature: 'algo' });
+      App.toast('이 과제에서는 알고리즘 보기를 쓸 수 없어요. 켜려고 한 기록이 남아요.');
+    }
+  }
+
+  toggle.addEventListener('change', () => {
+    if (forbidden || pending) {
+      if (forbidden) violation();
+      toggle.checked = false;
+      return;
+    }
+    wanted = toggle.checked;
+    try { localStorage.setItem(MODE_KEY, wanted ? '1' : '0'); } catch { /* 무시 */ }
+    show(wanted);
+  });
+
+  window.addEventListener('pyclass:policy', (e) => {
+    if (App && App.assignment && !e.detail.loaded) return;
+    forbidden = e.detail.policy.algo === false;
+    pending = false;
+    applyAvailability();
+  });
+
+  setInterval(() => {
+    if (!forbidden) return;
+    if (document.body.classList.contains('algo-mode') || notebookEl.querySelector('.algo-panel, .flowchart, .algo-pseudo')) {
+      violation();
+      detachAll();
+      notebookEl.querySelectorAll('.flowchart, .algo-pseudo, .algo-panel').forEach((n) => n.remove());
+      enabled = false;
+      document.body.classList.remove('algo-mode');
+    }
+  }, 2000);
 
   notebookEl.addEventListener('click', (e) => {
     const b = e.target.closest('.algo-tabs [data-view]');
@@ -640,8 +688,5 @@
     notebookEl.querySelectorAll('.cell.code').forEach(attach);
   }).observe(notebookEl, { childList: true });
 
-  setEnabled(enabled);
-
-  // 다른 곳(테스트 등)에서 쓸 수 있게
-  window.PyClassAlgo = { parse, pseudocode: (src) => { const t = parse(src); return pseudocode(t, new Set(collectDefs(t).map((d) => d.name))); }, flowchartSvg: (src) => flowchartSvg(parse(src)) };
+  applyAvailability();
 })();

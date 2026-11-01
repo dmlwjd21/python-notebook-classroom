@@ -175,6 +175,7 @@
         blockPaste: $('#dBlockPaste').checked,
         allowFileOpen: false,
         record: material ? $('#dRecord').checked : true,
+        algo: !$('#dNoAlgo').checked,
       },
     };
     for (const c of template.cells) {

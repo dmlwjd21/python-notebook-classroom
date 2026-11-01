@@ -346,6 +346,7 @@ body.locked .cell-tools, body.locked .inserter { display: none; }
   font-size: 13px; font-weight: 500; cursor: pointer; user-select: none;
 }
 .tool-check:hover { background: var(--hover); }
+.tool-check[hidden] { display: none; }
 .tool-check input { margin: 0; accent-color: var(--accent); }
 .tool-btn.active { background: var(--accent-soft); color: var(--accent); }
 

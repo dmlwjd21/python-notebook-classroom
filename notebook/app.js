@@ -771,6 +771,9 @@
     const lines = recording ? ['붙여넣기, 다른 탭·창으로 이동, 코드 입력 과정이 제출 파일에 함께 기록돼요.'] : [];
     if (policy.blockPaste) lines.push('외부에서 복사한 내용을 붙여넣을 수 없어요.');
     if (!policy.allowFileOpen) lines.push('다른 노트북 파일을 열 수 없어요.');
+    if (policy.algo === false) lines.push('이 과제에서는 알고리즘 보기(순서도)를 쓸 수 없어요.');
+    // algo.js 등에 알림. 과제 모드에서 불러오기 전(임시 화면)의 설정은 아직 진짜가 아니므로 loaded로 구분한다
+    window.dispatchEvent(new CustomEvent('pyclass:policy', { detail: { policy, loaded } }));
     chip.title = lines.join('\n');
     chip.hidden = !recording && !policy.blockPaste;
     chip.textContent = recording

@@ -23,8 +23,8 @@
 
   const KIND = { paste: 'p', cut: 'x', '+delete': 'd', undo: 'u', redo: 'u', drag: 'm', setValue: 's' };
 
-  // record: 작성 과정 기록 여부 (수업 자료는 끌 수 있음)
-  const defaultPolicy = () => ({ blockPaste: false, allowFileOpen: true, record: true });
+  // record: 작성 과정 기록 여부 (수업 자료는 끌 수 있음), algo: 알고리즘 보기(순서도) 허용 여부
+  const defaultPolicy = () => ({ blockPaste: false, allowFileOpen: true, record: true, algo: true });
 
   function normalize(text) {
     return String(text).replace(/\r\n?/g, '\n').trim();
@@ -227,7 +227,7 @@
     const ev = rec.events;
     const s = {
       pasteExternal: 0, pasteExternalChars: 0, pasteInternal: 0, pasteBlocked: 0,
-      awayCount: 0, awayMs: 0, runs: 0, runErrors: 0, fileOpens: 0,
+      awayCount: 0, awayMs: 0, runs: 0, runErrors: 0, fileOpens: 0, violations: 0,
       typedChars: 0, fastBursts: 0, bulkInserts: 0, mismatchCells: [],
     };
     for (const e of ev) {
@@ -238,6 +238,7 @@
       else if (e.type === 'away' && e.ms >= MIN_AWAY_MS) { s.awayCount += 1; s.awayMs += e.ms; }
       else if (e.type === 'run') { s.runs += 1; if (!e.ok) s.runErrors += 1; }
       else if (e.type === 'file-open') s.fileOpens += 1;
+      else if (e.type === 'policy-violation') s.violations += 1;
     }
     for (const e of rec.edits) {
       if (e[5] !== 'i') continue;
@@ -255,6 +256,7 @@
 
     const flags = [];
     if (s.mismatchCells.length) flags.push({ level: 'high', text: `기록과 최종 코드가 달라요 (${s.mismatchCells.length}개 셀): 기록 조작 가능성` });
+    if (s.violations) flags.push({ level: 'high', text: `선생님이 꺼 둔 기능을 억지로 켬 ${s.violations}회 (알고리즘 보기)` });
     if (s.pasteExternal) flags.push({ level: 'high', text: `외부 붙여넣기 ${s.pasteExternal}회 (${s.pasteExternalChars}자)` });
     if (s.pasteBlocked) flags.push({ level: 'mid', text: `차단된 붙여넣기 시도 ${s.pasteBlocked}회` });
     if (s.fastBursts) flags.push({ level: 'high', text: `사람이 치기 어려운 속도의 입력 ${s.fastBursts}회 (자동 입력 프로그램 의심)` });

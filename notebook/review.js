@@ -101,6 +101,7 @@
     const s = a.summary;
     const out = [];
     if (s.mismatchCells.length) out.push(['high', '기록 불일치']);
+    if (s.violations) out.push(['high', `금지 기능 ${s.violations}`]);
     if (s.pasteExternal) out.push(['high', `외부 붙여넣기 ${s.pasteExternal}`]);
     if (s.fastBursts) out.push(['high', '빠른 입력']);
     if (s.pasteBlocked) out.push(['mid', `차단 ${s.pasteBlocked}`]);
@@ -345,6 +346,7 @@
         case 'file-open': text = `다른 파일 열기: ${ev.name}${ev.hadRecord ? ' (작성 기록 포함 파일)' : ''}`; level = 'high'; break;
         case 'new-notebook': text = '새 노트북 만들기'; break;
         case 'interrupt': text = '실행 중단'; break;
+        case 'policy-violation': text = '선생님이 꺼 둔 알고리즘 보기를 켜려고 함'; level = 'high'; break;
         case 'submit': text = '제출'; break;
         case 'unsubmit': text = '제출 취소'; break;
         default: text = ev.type;
@@ -399,6 +401,7 @@
       const policy = { ...I.defaultPolicy(), ...((json.metadata && json.metadata.pyclass && json.metadata.pyclass.policy) || {}) };
       $('#optBlockPaste').checked = policy.blockPaste;
       $('#optBlockOpen').checked = !policy.allowFileOpen;
+      $('#optNoAlgo').checked = policy.algo === false;
       $('#templateName').textContent = `${file.name} (다른 파일 열기)`;
       $('#templateOptions').disabled = false;
     } catch (err) {
@@ -410,7 +413,7 @@
     if (!templateJson) return;
     const json = JSON.parse(JSON.stringify(templateJson));
     json.metadata = json.metadata || {};
-    const policy = { blockPaste: $('#optBlockPaste').checked, allowFileOpen: !$('#optBlockOpen').checked };
+    const policy = { blockPaste: $('#optBlockPaste').checked, allowFileOpen: !$('#optBlockOpen').checked, algo: !$('#optNoAlgo').checked };
     if ($('#optClean').checked) {
       json.metadata.pyclass = { version: 1, policy };
       for (const c of json.cells) {
