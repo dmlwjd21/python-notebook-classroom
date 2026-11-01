@@ -108,11 +108,12 @@ button { font: inherit; color: inherit; }
   padding: 6px 0;
 }
 .menu.open .menu-pop { display: block; }
-.menu-pop button {
+.menu-pop button, .menu-pop a {
   display: block; width: 100%; text-align: left;
   background: none; border: 0; padding: 8px 16px; cursor: pointer;
 }
-.menu-pop button:hover:not(:disabled) { background: var(--hover); }
+.menu-pop a { color: inherit; text-decoration: none; box-sizing: border-box; }
+.menu-pop button:hover:not(:disabled), .menu-pop a:hover { background: var(--hover); }
 .menu-pop button:disabled { opacity: .4; cursor: default; }
 .menu-pop hr { border: 0; border-top: 1px solid var(--border); margin: 6px 0; }
 

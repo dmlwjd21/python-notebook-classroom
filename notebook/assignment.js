@@ -59,7 +59,18 @@
       ...(message ? [el('p', 'assign-error', message)] : []),
       btn,
       ...(G.isDemo ? [el('p', 'assign-note', '데모 모드: 실제 구글 계정 대신 연습용 계정을 써요.')] : []),
+      privacyNote(),
     );
+  }
+
+  function privacyNote() {
+    const p = el('p', 'assign-note', '어떤 정보를 어디에 저장하는지는 ');
+    const a = el('a', '', '개인정보 처리방침');
+    a.href = 'privacy.html';
+    a.target = '_blank';
+    a.rel = 'noopener';
+    p.append(a, '에서 볼 수 있어요.');
+    return p;
   }
 
   function showLoading(text) {

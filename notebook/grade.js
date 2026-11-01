@@ -449,12 +449,12 @@
 
   function exportRows() {
     const titles = problemTitles();
-    const header = ['반', '학번', '이름', '이메일', '제출 상태', '기본 점수', ...titles, '자동 점수', '수정 점수', '최종 점수', '감점 항목', '작성 기록 경고', '확인 필요 사유', '메모'];
+    const header = ['반', '학번', '이름', '제출 상태', '기본 점수', ...titles, '자동 점수', '수정 점수', '최종 점수', '감점 항목', '작성 기록 경고', '확인 필요 사유', '메모'];
     const out = [header];
     for (const r of rows) {
       const reasons = [r.error, r.suspicious ? '의심 코드' : '', r.late ? '늦은 제출' : ''].filter(Boolean).join(', ');
       out.push([
-        r.course.name, r.studentNo, r.name, r.email, r.state + (r.late ? '(늦음)' : ''),
+        r.course.name, r.studentNo, r.name, r.state + (r.late ? '(늦음)' : ''),
         r.result ? r.result.base : '',
         ...titles.map((_, i) => (r.result && r.result.problems[i] ? r.result.problems[i].score : '')),
         r.result ? r.result.total : '',

@@ -28,3 +28,30 @@ for (const [env, key] of Object.entries(ENV_TO_KEY)) {
 }
 
 fs.writeFileSync('config.js', src);
+
+// ---- 개인정보 처리방침(privacy.html)의 학교별 빈칸 채우기
+// SCHOOL_NAME(학교 이름), PRIVACY_DATE(시행일, 예: 2026-11-01), PRIVACY_OFFICER(보호책임자, 예: 교장), PRIVACY_CONTACT(연락처)
+const PRIVACY_KEYS = ['SCHOOL_NAME', 'PRIVACY_DATE', 'PRIVACY_OFFICER', 'PRIVACY_CONTACT'];
+const escapeHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const formatDate = (v) => {
+  const m = v.match(/^(\d{4})-?(\d{1,2})-?(\d{1,2})$/);
+  return m ? `${m[1]}년 ${Number(m[2])}월 ${Number(m[3])}일` : v;
+};
+
+if (fs.existsSync('privacy.html')) {
+  let html = fs.readFileSync('privacy.html', 'utf8');
+  let filled = 0;
+  for (const key of PRIVACY_KEYS) {
+    let value = (process.env[key] || '').trim();
+    if (!value) continue;
+    if (key === 'PRIVACY_DATE') value = formatDate(value);
+    const pattern = new RegExp(`<span class="fill" data-key="${key}">[^<]*</span>`, 'g');
+    html = html.replace(pattern, escapeHtml(value));
+    filled += 1;
+    console.log(`처리방침 적용: ${key}`);
+  }
+  // 학교별 빈칸을 모두 채웠으면 "초안" 안내를 지운다
+  if (filled === PRIVACY_KEYS.length) html = html.replace(/<p class="draft" id="draftNotice">[\s\S]*?<\/p>\s*/, '');
+  else console.log('처리방침에 아직 채우지 않은 칸이 있어 "초안" 안내를 남겨요.');
+  fs.writeFileSync('privacy.html', html);
+}
