@@ -8,7 +8,7 @@
 python notebook/serve.py
 ```
 
-http://localhost:8000 (노트북), http://localhost:8000/review.html (교사용 도구).
+http://localhost:8000 (노트북), http://localhost:8000/teacher (교사용 도구).
 `config.js`에 클라이언트 ID가 없으면 데모 모드(연습용 반·학생, 브라우저 localStorage에 저장)로 동작합니다.
 실제 구글 연동을 로컬에서 시험하려면 `?demo` 없이, `config.js`의 `googleClientId`·`allowedDomain`을 잠시 채우고
 구글 클라이언트의 "승인된 JavaScript 원본"에 `http://localhost:8000`을 추가하세요. (커밋하지 말 것)
@@ -30,7 +30,7 @@ http://localhost:8000 (노트북), http://localhost:8000/review.html (교사용 
 | `integrity.js` | 작성 과정 기록(학생)과 기록 분석(교사) |
 | `google.js` | 클래스룸·드라이브·시트 API, 설정 전에는 데모 저장소 |
 | `assignment.js` | 과제 모드(`?c=반&t=문제파일`)·수업 자료 모드(`?m=파일`): 불러오기, 드라이브 자동 저장, 제출 |
-| `review.html`, `review.js`, `review.css` | 교사용 도구: 제출물 검토, 템플릿 설정 |
+| `teacher.html`, `review.js`, `review.css` | 교사용 도구 (주소 `/teacher`): 제출물 검토, 템플릿 설정 |
 | `deploy.js` | 교사용: 과제·수업 자료 배포 |
 | `grade.js`, `grade-worker.js` | 교사용: 제출물 수집·자동 채점 (채점은 별도 Worker) |
 | `grader_core.py` | 채점 엔진 (Pyodide 안에서 실행, 그래프 객체 검사) |

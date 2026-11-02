@@ -21,6 +21,18 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=ROOT, **kwargs)
 
+    # vercel.json과 같게: /teacher → teacher.html, 예전 주소(/review.html)는 /teacher로 이동
+    def do_GET(self):
+        path, _, query = self.path.partition("?")
+        if path in ("/review.html", "/review"):
+            self.send_response(308)
+            self.send_header("Location", "/teacher" + (f"?{query}" if query else ""))
+            self.end_headers()
+            return
+        if path == "/teacher":
+            self.path = "/teacher.html" + (f"?{query}" if query else "")
+        super().do_GET()
+
     def end_headers(self):
         self.send_header("Cache-Control", "no-store")
         super().end_headers()
